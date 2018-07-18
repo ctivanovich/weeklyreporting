@@ -1,40 +1,32 @@
 # -*- coding: utf-8 -*-
 from multiprocessing.pool import ThreadPool
+import logging
+import sys
+import time
 import pickle
-import config
 
-from reportwriter import write_results
-from queries import postgre_queries as QUERIES
+from queries import queries
 from dbconnect import DBConnector
 
 results = {}
 
-queries = [(k,v) for k,v in QUERIES.items()]
-db_type = 'postgre'
+queries = [(k,v) for k,v in queries.items()]
+db_type = 'mysql'
 pool = ThreadPool(processes=8)
 
 def log_decorator(func):
     def logger(*args, **kwargs):
-        import logging
-        import sys
-        import time
         log = logging.getLogger(args[0][0]) #the name of the query as logfile name
         log.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(f"{time.strftime('%Y%m%d%H%M%S')}.log")
-        handler = logging.StreamHandler(stream=sys.stdout)
-        log.addHandler(handler)
-        fmt = '%(asctime)s - %(threadName)s - %(levelname)s - %(message)s'
-        formatter = logging.Formatter(fmt)
-        fh.setFormatter(formatter)
-        log.addHandler(fh)
+        log.addHandler(log_fh)
         try:
-            log.debug("Initiating process and query")
+            log.debug(f"Initiating process and query for  {args[0][0]}")
             start = time.time()
             func(args[0]) #corresponds to passing sql query to run_query
             total = (time.time()-start)/60
             log.debug("Process exited in approx. {0:.2f} minutes".format(total))
         except:
-            log.error("Uncaught exception")
+            log.error(f"Uncaught exception for  {args[0][0]}")
         finally:
             log.debug(f"Exiting run_query for {args[0][0]}")
         return func
@@ -44,15 +36,23 @@ def log_decorator(func):
 def run_query(query):
     conn = DBConnector(db_type).connect_db()
     cur = conn.cursor()
+    for q in queries[0][1]: #establish attributes for queries each time...inefficient
+        cur.execute(q)
     cur.execute(query[1])
     results[query[0]]= cur.fetchall()
     cur.close()
 
 if __name__ == '__main__':
-    n_queries = len(queries)
+    #initiate log with common log logfile
+    log_fh = logging.FileHandler(f"{time.strftime('%Y%m%d')}.log")
+    formatter = logging.Formatter(fmt)
+    fmt = '%(asctime)s - %(threadName)s - %(levelname)s - %(message)s'
+    log_fh.setFormatter(formatter)
+
+    #run pool of processes
     pool.map(run_query, queries)
-    # print("Waiting for threads to complete tasks...")
     pool.close()
     pool.join()
-    print(f"{len(results)} queries successfully executed")
-    # write_results(results)
+    print(f"{len(results)} of {len(queries[1:])} queries successfully executed")
+    with open('results.pickle', 'wb') as f:
+        pickle.dump(results, f)
