@@ -11,6 +11,7 @@ from dbconnect import DBConnector
 results = {}
 
 queries = [(k,v) for k,v in queries.items()]
+
 db_type = 'mysql'
 pool = ThreadPool(processes=8)
 
@@ -43,10 +44,10 @@ def run_query(query):
     cur.close()
 
 if __name__ == '__main__':
-    #initiate log with common log logfile
+    #initiate log with common log file
     log_fh = logging.FileHandler(f"{time.strftime('%Y%m%d')}.log")
-    formatter = logging.Formatter(fmt)
     fmt = '%(asctime)s - %(threadName)s - %(levelname)s - %(message)s'
+    formatter = logging.Formatter(fmt)
     log_fh.setFormatter(formatter)
 
     #run pool of processes
