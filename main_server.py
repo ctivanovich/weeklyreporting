@@ -4,16 +4,22 @@ import logging
 import sys
 import time
 import pickle
+import os
 
-from queries import queries
+from queries import get_queries
 from dbconnect import DBConnector
 
 results = {}
 
-queries = [(k,v) for k,v in queries.items()]
+region = sys.argv[1]
+queries = [(k,v) for k,v in get_queries(region).items()]
 
 db_type = 'mysql'
+
 pool = ThreadPool(processes=8)
+
+def set_region(region):
+    return sys.argv[1]
 
 def log_decorator(func):
     def logger(*args, **kwargs):
