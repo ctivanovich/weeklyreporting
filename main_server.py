@@ -43,8 +43,6 @@ def log_decorator(func):
 def run_query(query):
     conn = DBConnector(db_type).connect_db()
     cur = conn.cursor()
-    for q in queries[0][1]: #establish attributes for queries each time...inefficient
-        cur.execute(q)
     cur.execute(query[1])
     results[query[0]]= cur.fetchall()
     cur.close()
