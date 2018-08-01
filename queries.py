@@ -100,15 +100,14 @@ def get_queries(region):
     # 11 # 2018年累计活跃人数
     'q11':
     f"""
-    select
-    	case
-    		b.user_origin
-    		when "WX" then "微信卡包"
+    select case
+        b.user_origin
+		when "WX" then "微信卡包"
         when "WM" then "微信小程序"
-    		when "AP" then "支付宝卡包"
+		when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
-    		else "APP下载"
+		      else "APP下载"
     	end as category,
     	count( distinct a.user_id )
     from t_pos_purchase_log a
@@ -133,7 +132,16 @@ def get_queries(region):
     # 18 #人均消费金额-老会员
     'q18' :
     f"""
-    select sum(total_payment - COLLECTING_AMOUNT)/count(DISTINCT a.user_id)
+    select case
+		user_origin
+        when "WX" then "微信卡包"
+        when "WM" then "微信小程序"
+        when "AP" then "支付宝卡包"
+        when "LW" then "门店报手机"
+        when "MR" then "火星兔子"
+        	else "APP下载"
+        end as category,
+        sum(total_payment - COLLECTING_AMOUNT)/count(DISTINCT a.user_id)
     from t_pos_purchase_log a
     inner JOIN t_user c on a.USER_ID = c.user_id and a.REGION_BLOCK_CODE = c.region_block_code
     left join yoren_user_level b on a.user_id = b.user_id
@@ -147,7 +155,16 @@ def get_queries(region):
     # 19 #人均来店频次-老会员
     'q19':
     f"""
-    select count(DISTINCT CONCAT(a.SHOP_ID, a.POS_NO ,serial_number,a.DEAL_TIME))	/count(DISTINCT a.user_id)
+    select case
+		user_origin
+        when "WX" then "微信卡包"
+        when "WM" then "微信小程序"
+        when "AP" then "支付宝卡包"
+        when "LW" then "门店报手机"
+        when "MR" then "火星兔子"
+        	else "APP下载"
+        end as category,
+        count(DISTINCT CONCAT(a.SHOP_ID, a.POS_NO ,serial_number,a.DEAL_TIME))	/count(DISTINCT a.user_id)
     from t_pos_purchase_log a
     inner JOIN t_user c on a.USER_ID = c.user_id and a.REGION_BLOCK_CODE = c.region_block_code
     left join yoren_user_level b on a.user_id = b.user_id
@@ -161,7 +178,16 @@ def get_queries(region):
     # 20 #客单价-老会员
     'q20':
     f"""
-    select avg(total_payment - COLLECTING_AMOUNT )
+    select case
+		user_origin
+        when "WX" then "微信卡包"
+        when "WM" then "微信小程序"
+        when "AP" then "支付宝卡包"
+        when "LW" then "门店报手机"
+        when "MR" then "火星兔子"
+        	else "APP下载"
+        end as category,
+        avg(total_payment - COLLECTING_AMOUNT )
     from t_pos_purchase_log a
     inner JOIN t_user c on a.USER_ID = c.user_id and a.REGION_BLOCK_CODE = c.region_block_code
     left join yoren_user_level b on a.user_id = b.user_id
@@ -192,15 +218,15 @@ def get_queries(region):
     'q22':
     f"""
     select
-    case
-    		user_origin
+    case user_origin
         when "WX" then "微信卡包"
         when "WM" then "微信小程序"
-    		when "AP" then "支付宝卡包"
+    	when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
-    		else "APP下载"
-    	end as category,count(DISTINCT barcode)
+    	else "APP下载"
+    	end as category,
+        count(DISTINCT barcode)
     from t_user
     where CREATE_DATE between '{begintime}' and '{endtime}'
     and region_block_code = '{region}'
@@ -213,12 +239,11 @@ def get_queries(region):
     # 24 # 新会员活跃人数
     'q24':
     f"""
-    select
-    	case
-    		b.user_origin
-    		when "WX" then "微信卡包"
+    select case
+		b.user_origin
+		when "WX" then "微信卡包"
         when "WM" then "微信小程序"
-    		when "AP" then "支付宝卡包"
+		when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
     		else "APP下载"
@@ -383,19 +408,18 @@ def get_queries(region):
     f"""
     SELECT sum(total_payment - COLLECTING_AMOUNT)
     from t_pos_purchase_log
-    where user_id in
+    JOIN
     (
-    select DISTINCT a.USER_ID
+    SELECT a.USER_ID
     from t_pos_purchase_log a
     where a.purchase_date between '{begin}' and '{end}'
     and a.REGION_BLOCK_CODE ='{region}'
-    and user_id != ''
+    and user_id > 0
     group by 1
-    having count(*) >= 40   # 消费总次数
-    )
-    and purchase_date between '{begin}' and '{end}'
-    and REGION_BLOCK_CODE ='{region}'
-    ;
+    HAVING count(*) > 40 # 消费总次数
+    ) sub1 ON sub1.user_id = t_pos_purchase_log.user_id
+    WHERE purchase_date between '{begin}' and '{end}'
+    and REGION_BLOCK_CODE = '{region}';
     """,
 
     # 38 # 总发行积分
