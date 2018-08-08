@@ -11,7 +11,7 @@ from dbconnect import DBConnector
 
 results = {}
 
-regions = ['sh-lawson', 'bj-lawson', 'cq-lawson', 'wh-lawson', 'dl-lawson']
+regions = ['sh-lawson', 'bj-lawson', 'cq-lawson', 'wh-lawson', 'dl-lawson', 'ah-lawson']
 db_type = 'mysql'
 
 pool = ThreadPool(processes=8)
