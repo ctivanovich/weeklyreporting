@@ -58,7 +58,8 @@ if __name__ == '__main__':
         pool.close()
         pool.join()
         print(f"{len(results)} of {len(queries[1:])} queries successfully executed")
-        print(results)
+        import pprint
+        pprint.pprint(results)
         print('\n\n')
 
 

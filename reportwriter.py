@@ -3,6 +3,7 @@ import datetime
 import os
 import openpyxl
 import pickle
+import pprint
 import sys
 
 from fields import fields
@@ -26,8 +27,8 @@ def write_report(region, pkl, sh, wb):
                 if write_val == None:
                     sh[shloc] = '-'
                 else:
-                    sh[shloc] = str(float(write_val))
-                    sh[shloc].number_format = '0,000.0'
+                    sh[shloc] = float(write_val)
+                    # sh[shloc].number_format = '0,000.0'
                     # print(q, shloc, write_val)
             else: #then field is a dict of name, nrow pairs
                 results = p[q] #eg [('APP下载', 273764),('微信卡包', 367695),('微信小程序', 3420), etc
@@ -37,8 +38,8 @@ def write_report(region, pkl, sh, wb):
                     else:
                         nrow = entry[name]
                         shloc = column + str(nrow)
-                        sh[shloc] = str(float(datum))
-                        sh[shloc].number_format = '0,000.0'
+                        sh[shloc] = float(datum)
+                        # sh[shloc].number_format = '0,000.0'
                         # print(q, nrow, shloc, datum)
         except KeyError:
             print(f'{q} is not in the results dictionary for {region}')
