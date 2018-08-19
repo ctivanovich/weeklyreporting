@@ -1,15 +1,20 @@
 import datetime
-begin = '20180709'
-end = '20180715'
-begintime = '2018-07-09 00:00:00'
-endtime = '2018-07-15 23:59:59'
+
+NOW = datetime.datetime.strptime('20180813', "%Y%m%d")
+
+begin = (NOW - datetime.timedelta(days=7)).strftime("%Y%m%d")
+end = (NOW - datetime.timedelta(days=1)).strftime("%Y%m%d")
+
+begintime = (NOW - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+endtime =  (NOW - datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
 
 #上周-计算流失会员
-lostbegin = '20180702';
-lostend = '20180708'
 
-lostbegintime = '2018-07-02 00:00:00'
-lostendtime = '2018-07-08 23:59:59'
+lostbegin = (NOW - datetime.timedelta(days=14)).strftime("%Y%m%d")
+lostend = (NOW - datetime.timedelta(days=8)).strftime("%Y%m%d")
+
+lostbegintime = (NOW - datetime.timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
+lostendtime = (NOW - datetime.timedelta(days=8)).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def get_queries(region):
@@ -68,7 +73,7 @@ def get_queries(region):
     left join t_user b on a.user_id = b.user_id
     LEFT JOIN yoren_user_level c on a.USER_ID = c.USER_ID
     where a.purchase_date between '{begin}' and '{end}'
-      and c.LEVEL_1806 != 'L7'
+      and c.level_1807 != 'L7'
       and a.region_block_code = '{region}'
       and c.region_block_code = '{region}'
     group by 1;
@@ -209,7 +214,7 @@ def get_queries(region):
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
     and b.region_block_code = '{region}'
-    and b.LEVEL_1806 != 'L7'
+    and b.level_1807 != 'L7'
     and (total_payment - COLLECTING_AMOUNT) >= 20
     ;
     """,
@@ -358,7 +363,7 @@ def get_queries(region):
     		where PURCHASE_DATE between '{begin}' and '{end}'
     	)
     and a.region_block_code = '{region}'
-    and c.LEVEL_1806 != 'L7'
+    and c.level_1807 != 'L7'
     group by 1
     ;
     """,
@@ -376,7 +381,7 @@ def get_queries(region):
     left join yoren_user_level b on a.user_id = b.user_id and a.region_block_code = b.REGION_BLOCK_CODE
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
-    and b.LEVEL_1806 != 'L7'
+    and b.level_1807 != 'L7'
     ;
     """,
 
