@@ -1,6 +1,6 @@
 import datetime
 
-NOW = datetime.datetime.strptime('20180813', "%Y%m%d")
+NOW = datetime.datetime.now()
 
 begin = (NOW - datetime.timedelta(days=7)).strftime("%Y%m%d")
 end = (NOW - datetime.timedelta(days=1)).strftime("%Y%m%d")
@@ -47,12 +47,10 @@ def get_queries(region):
     f"""
     select sum(sells_count)
     from t_pos_purchase_commodity_log a
-    left join yoren_user_level c using (user_id, region_block_code)
     where a.purchase_date between '{begin}' and '{end}'
       and a.region_block_code = '{region}'
       and c.region_block_code = '{region}'
-      and a.drcr_type = 1
-      and c.level_1807 != 'L7';
+      and a.drcr_type = 1;
     """,
 
     # 8 #WAU
@@ -71,11 +69,9 @@ def get_queries(region):
     	count( distinct a.user_id )
     from t_pos_purchase_log a
     left join t_user b on a.user_id = b.user_id
-    LEFT JOIN yoren_user_level c on a.USER_ID = c.USER_ID
     where a.purchase_date between '{begin}' and '{end}'
-      and c.level_1807 != 'L7'
       and a.region_block_code = '{region}'
-      and c.region_block_code = '{region}'
+      and b.del_flg = '0'
     group by 1;
     """,
 
@@ -147,12 +143,11 @@ def get_queries(region):
         sum(total_payment - COLLECTING_AMOUNT)/count(DISTINCT a.user_id)
     from t_pos_purchase_log a
     inner JOIN t_user c on a.USER_ID = c.user_id
-    left join yoren_user_level b on a.user_id = b.user_id and a.REGION_BLOCK_CODE = b.region_block_code
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
     and b.region_block_code = '{region}'
-    and b.level_1807 != 'L7'
     and c.create_date < '{begintime}'
+    and c.del_flg = '0'
     GROUP BY 1;
     """,
 
@@ -171,12 +166,10 @@ def get_queries(region):
         count(DISTINCT CONCAT(a.SHOP_ID, a.POS_NO ,serial_number,a.DEAL_TIME))	/count(DISTINCT a.user_id)
     from t_pos_purchase_log a
     inner JOIN t_user c on a.USER_ID = c.user_id and a.REGION_BLOCK_CODE = c.region_block_code
-    left join yoren_user_level b on a.user_id = b.user_id  and a.REGION_BLOCK_CODE = b.region_block_code
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
-    and b.region_block_code = '{region}'
-    and b.level_1807 != 'L7'
     and c.create_date < '{begintime}'
+    and c.del_flg = '0'
     GROUP BY 1;
     """,
 
@@ -195,13 +188,10 @@ def get_queries(region):
         avg(total_payment - COLLECTING_AMOUNT )
     from t_pos_purchase_log a
     inner JOIN t_user c on a.USER_ID = c.user_id
-    left join yoren_user_level b b.user_id = c.user_id
-    and a.region_block_code = b.region_block_code
     where purchase_date between '{begin}' and
     and a.region_block_code = '{region}'
-    and b.region_block_code = '{region}'
-    and b.level_1807 != 'L7'
     and c.create_date < '{begintime}'
+    and c.del_flg = '0'
     GROUP BY 1;
     """,
 
@@ -210,13 +200,9 @@ def get_queries(region):
     f"""
     select count(DISTINCT CONCAT(a.SHOP_ID, a.POS_NO ,serial_number,a.DEAL_TIME))
     from t_pos_purchase_log a
-    left join yoren_user_level b on a.user_id = b.user_id
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
-    and b.region_block_code = '{region}'
-    and b.level_1807 != 'L7'
-    and (total_payment - COLLECTING_AMOUNT) >= 20
-    ;
+    and (total_payment - COLLECTING_AMOUNT) >= 20;
     """,
     # formula （除以第五行）
 
@@ -237,6 +223,7 @@ def get_queries(region):
     from t_user
     where CREATE_DATE between '{begintime}' and '{endtime}'
     and region_block_code = '{region}'
+    and del_flg = '0'
     GROUP BY 1;
     """,
 
@@ -261,6 +248,7 @@ def get_queries(region):
     where a.purchase_date between '{begin}' and '{end}'
     	and b.CREATE_DATE between '{begintime}' and '{endtime}'
     and a.region_block_code = '{region}'
+    and b.del_flg = '0'
     group by 1;
     """,
 
@@ -275,31 +263,30 @@ def get_queries(region):
     'q27':
     f"""
     select
-    case b.user_origin
-		    when "WX" then "微信卡包"
-            when "WM" then "微信小程序"
-	    	when "AP" then "支付宝卡包"
-            when "LW" then "门店报手机"
-            when "MR" then "火星兔子"
-		    else "APP下载"
-        end as category,
-    count(distinct a.user_id )
-    from
-        t_pos_purchase_log a
-        inner join t_user b using(user_id)
-        left join
-        (
-    		select distinct user_id
-    		from t_pos_purchase_log
-    		where PURCHASE_DATE between '{begin}' and '{end}'
+    	case
+    		b.user_origin
+    		when "WX" then "微信卡包"
+        when "WM" then "微信小程序"
+    		when "AP" then "支付宝卡包"
+        when "LW" then "门店报手机"
+        when "MR" then "火星兔子"
+    		else "APP下载"
+    	end as category,
+    	count( distinct a.user_barcode )
+    from t_pos_purchase_log a
+    left join t_user b on a.user_barcode = b.barcode
+    inner join (
+		select distinct user_barcode
+		from t_pos_purchase_log
+		where PURCHASE_DATE between '{begin}' and '{end}'
         and region_block_code = '{region}'
-    	   ) subq using(user_id)
-    where
-           a.PURCHASE_DATE between '{lostbegin}' and '{lostend}'##上周活跃
-        and b.create_date between '{lostbegintime}' and '{lostendtime}'
-        and subq.user_id Is null
-        and a.region_block_code = '{region}'
+    	) c on a.user_barcode = c.user_barcode
+    where a.PURCHASE_DATE between '{lostbegin}' and '{lostend}'
+    and b.create_date between '{lostbegintime}' and '{lostendtime}'
+     and a.region_block_code = '{region}'
+    and b.del_flg = '0'
     group by 1;
+
     """,
 
     # 28 # 新会员流失率
@@ -323,12 +310,10 @@ def get_queries(region):
     	count( distinct a.user_id )
     from t_pos_purchase_log a
     left join t_user b on a.user_id = b.user_id
-    LEFT JOIN yoren_user_level c on a.USER_ID = c.USER_ID
     where a.purchase_date between '{begin}' and '{end}'
-      and c.level_1807 != 'L7'
       and a.region_block_code = '{region}'
-      and c.region_block_code = '{region}'
       and b.CREATE_DATE < '{begintime}'
+      and b.del_flg = '0'
     group by 1;
     """,
 
@@ -353,19 +338,17 @@ def get_queries(region):
     	count( distinct a.user_barcode )
     from t_pos_purchase_log a
     left join t_user b on a.user_barcode = b.barcode
-    left join yoren_user_level c on a.user_id = c.user_id
+    inner join (
+		select distinct user_barcode
+		from t_pos_purchase_log
+		where PURCHASE_DATE between '{begin}' and '{end}'
+        and region_block_code = '{region}'
+    	) d on a.user_barcode = d.user_barcode
     where a.PURCHASE_DATE between '{lostbegin}' and '{lostend}'##上周活跃
-    and b.create_date < '{lostbegintime}'
-    and a.user_barcode not in
-    (
-    		select distinct user_barcode
-    		from t_pos_purchase_log
-    		where PURCHASE_DATE between '{begin}' and '{end}'
-    	)
-    and a.region_block_code = '{region}'
-    and c.level_1807 != 'L7'
-    group by 1
-    ;
+        and b.create_date < '{lostbegintime}'
+        and a.region_block_code = '{region}'
+        and b.del_flg = '0'
+    group by 1;
     """,
 
     # 32 # 老会员流失率
@@ -377,11 +360,9 @@ def get_queries(region):
     'q33':
     f"""
     select sum(total_payment - COLLECTING_AMOUNT)
-    from t_pos_purchase_log a
-    left join yoren_user_level b on a.user_id = b.user_id and a.region_block_code = b.REGION_BLOCK_CODE
+    from t_pos_purchase_log a a.region_block_code = b.REGION_BLOCK_CODE
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
-    and b.level_1807 != 'L7'
     ;
     """,
 
@@ -412,7 +393,7 @@ def get_queries(region):
     from t_pos_purchase_log a
     JOIN
     (
-    SELECT a.USER_ID
+    SELECT DISTINCT a.USER_ID
     from t_pos_purchase_log a
     where a.purchase_date between '{begin}' and '{end}'
     and a.REGION_BLOCK_CODE ='{region}'
@@ -510,11 +491,9 @@ def get_queries(region):
     f"""
     select count(distinct a.user_id)
     from t_pos_purchase_commodity_log a
-    left join yoren_user_level d on a.user_id = d.user_id and a.region_block_code = d.region_block_code
     where a.region_block_code = '{region}'
       and a.purchase_date between '{begin}' and '{end}'
-      and a.PROMOTION_FLG = '1'
-      and d.level_1807 != 'L7';
+      and a.PROMOTION_FLG = '1';
     """,
 
 
@@ -523,11 +502,9 @@ def get_queries(region):
     f"""
     select sum(sells_count)
     from t_pos_purchase_commodity_log a
-    left join yoren_user_level d on a.user_id = d.user_id and a.region_block_code = d.region_block_code
     where a.region_block_code = '{region}'
       and a.purchase_date between '{begin}' and '{end}'
-      and a.PROMOTION_FLG = '1'
-      and d.level_1807 != 'L7';
+      and a.PROMOTION_FLG = '1';
     """,
 
     # 50 # 会员商品销量占比
@@ -538,11 +515,9 @@ def get_queries(region):
     f"""
     select sum(DISCOUNT_TAX_INCLUSIVE_PRICE )
     from t_pos_purchase_commodity_log a
-    left join yoren_user_level d on a.user_id = d.user_id AND a.region_block_code = d.region_block_code
     where a.region_block_code = '{region}'
       and a.purchase_date between '{begin}' and '{end}'
-      and a.PROMOTION_FLG = '1'
-      and d.level_1807 != 'L7';
+      and a.PROMOTION_FLG = '1';
     """,
 
 
@@ -636,12 +611,9 @@ def get_queries(region):
     END AS type,
     count(*)
     from t_user_coupon  a
-    left join yoren_user_level b on a.user_id = b.user_id
     LEFT JOIN t_coupon c on a.coupon_id = c.coupon_id
-    where b.region_block_code = '{region}'
-      and c.region_block_code = '{region}'
+    where c.region_block_code = '{region}'
       and binding_date between '{begintime}' and '{endtime}'
-      and b.level_1807 != 'L7'
     GROUP BY 1;
     """,
     # 签到获得
@@ -703,12 +675,9 @@ def get_queries(region):
     f"""
     select count(*)
     from t_user_coupon  a
-    left join yoren_user_level b on a.user_id = b.user_id
     LEFT JOIN t_coupon c on a.coupon_id = c.coupon_id
     where c.region_block_code = '{region}'
-      and b.region_block_code = '{region}'
       and use_date between '{begintime}' and '{endtime}'
-      and level_1807 != 'L7'
       and c.send_type = '4';
     """,
 
@@ -723,12 +692,9 @@ def get_queries(region):
     f"""
     select count(DISTINCT CONCAT(a.SHOP_ID, a.POS_NO ,serial_number,a.DEAL_TIME))
     from t_pos_purchase_commodity_log a
-    left join yoren_user_level c on a.user_id = c.user_id and a.region_block_code = c.region_block_code
     where a.region_block_code = '{region}'
-      and c.region_block_code = '{region}'
       and a.purchase_date between '{begin}' and '{end}'
-      and a.business_flg = 'A'
-      and c.level_1807 != 'L7';
+      and a.business_flg = 'A';
     """,
 
     # 64 # 会员活动商品退货次数
@@ -736,12 +702,10 @@ def get_queries(region):
     f"""
     select count(DISTINCT CONCAT(a.SHOP_ID, a.POS_NO ,serial_number,a.DEAL_TIME))
     from t_pos_purchase_commodity_log a
-    left join yoren_user_level c on a.user_id = c.user_id and a.region_block_code = c.region_block_code
     where a.region_block_code = '{region}'
-      and c.region_block_code = '{region}'
       and a.purchase_date between '{begin}' and '{end}'
       and a.business_flg = 'A'
-      and c.level_1807 != 'L7'
       and a.promotion_flg in ('1', '2', '3');
     """}
+
     return queries
