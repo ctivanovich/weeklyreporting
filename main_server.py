@@ -53,11 +53,12 @@ if __name__ == '__main__':
     #run pool of processes
     for region in regions:
         queries = [(k,v) for k,v in get_queries(region).items()]
+        print(queries)
         pool.map(run_query, queries)
         pool.close()
         pool.join()
         print(f"{len(results)} of {len(queries[1:])} queries successfully executed")
         print('\n\n')
-
-    with open('results.pkl', 'wb') as f:
-        pickle.dump(results, f)
+    #
+    # with open('results.pkl', 'wb') as f:
+    #     pickle.dump(results, f)

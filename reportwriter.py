@@ -49,11 +49,16 @@ def init_new_col(sh, cur_col):
         elif type(cell.value)==str:
             formula = '='+ ''.join([item.value for item in Tokenizer(cell.value).items])
             if prev_col in formula:
-                if 'SUM' not in formula or 'AVG' not in formula:
+                if 'SUM' in formula:
+                    sumpos = formula.find('SUM')
+                    formula = formula[:sumpos].replace(cur_col, next_col) + "SUM" + formula[4:].replace(cur_col, next_col)
+                else:
+                    formula = formula.replace(cur_col, next_col)
                     formula = formula.replace(prev_col, cur_col)
-            formula = formula.replace(cur_col, next_col)
+            else:
+                formula = formula.replace(cur_col, next_col)
             new_cell.value = formula
-            print(formula)
+            print(row, formula)
         if cell.has_style:
             new_cell._style = copy(cell._style)
 
