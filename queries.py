@@ -384,7 +384,7 @@ def get_queries(region):
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
     and b.level_1807 = 'L7'
-    ;"""
+    ;""",
 
     # 36 # L7销售额占比
     # formula
