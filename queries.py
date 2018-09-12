@@ -58,14 +58,14 @@ def get_queries(region):
     'q8':
     f"""
     select
-    	case
-    		b.user_origin
-    		when "WX" then "微信卡包"
-        when "WM" then "微信小程序"
-    		when "AP" then "支付宝卡包"
-        when "LW" then "门店报手机"
-        when "MR" then "火星兔子"
-    		else "APP下载"
+    	case b.user_origin
+        	when "WX" then "微信卡包"
+            when "WM" then "微信小程序"
+        	when "AP" then "支付宝卡包"
+            when "LW" then "门店报手机"
+            when "MR" then "火星兔子"
+            when "FI" then "刷脸"
+        	else "APP"
     	end as category,
     	count( distinct a.user_id )
     from t_pos_purchase_log a
@@ -83,15 +83,15 @@ def get_queries(region):
     'q10':
     f"""
     select
-    case
-    		user_origin
-    	  when "WX" then "微信卡包"
+    case user_origin
+    	when "WX" then "微信卡包"
         when "WM" then "微信小程序"
-    		when "AP" then "支付宝卡包"
+		when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
-    		else "APP下载"
-    	end as category,count(DISTINCT barcode)
+        when "FI" then "刷脸"
+		else "APP"
+    end as category,count(DISTINCT barcode)
     from t_user
     where region_block_code = '{region}'
     and create_date <= '{endtime}'
@@ -109,7 +109,8 @@ def get_queries(region):
 		when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
-		      else "APP下载"
+        when "FI" then "刷脸"
+		      else "APP"
     	end as category,
     	count( distinct a.user_id )
     from t_pos_purchase_log a
@@ -139,7 +140,8 @@ def get_queries(region):
         when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
-        	else "APP下载"
+        when "FI" then "刷脸"
+        	else "APP"
         end as category,
         sum(total_payment - COLLECTING_AMOUNT)/count(DISTINCT a.user_id)
     from t_pos_purchase_log a
@@ -161,7 +163,8 @@ def get_queries(region):
         when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
-        	else "APP下载"
+        when "FI" then "刷脸"
+        	else "APP"
         end as category,
         count(DISTINCT CONCAT(a.SHOP_ID, a.POS_NO ,serial_number,a.DEAL_TIME))	/count(DISTINCT a.user_id)
     from t_pos_purchase_log a
@@ -183,7 +186,8 @@ def get_queries(region):
         when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
-        	else "APP下载"
+        when "FI" then "刷脸"
+        	else "APP"
         end as category,
         avg(total_payment - COLLECTING_AMOUNT )
     from t_pos_purchase_log a
@@ -195,7 +199,7 @@ def get_queries(region):
     GROUP BY 1;
     """,
 
-    # 21 # 高客单占比%
+    # 21 # 高客单订单笔数
     'q21':
     f"""
     select count(DISTINCT CONCAT(a.SHOP_ID, a.POS_NO ,serial_number,a.DEAL_TIME))
@@ -211,15 +215,16 @@ def get_queries(region):
     'q22':
     f"""
     select
-    case user_origin
-        when "WX" then "微信卡包"
-        when "WM" then "微信小程序"
-    	when "AP" then "支付宝卡包"
-        when "LW" then "门店报手机"
-        when "MR" then "火星兔子"
-    	else "APP下载"
+        case user_origin
+            when "WX" then "微信卡包"
+            when "WM" then "微信小程序"
+        	when "AP" then "支付宝卡包"
+            when "LW" then "门店报手机"
+            when "MR" then "火星兔子"
+            when "FI" then "刷脸"
+        	else "APP"
     	end as category,
-        count(DISTINCT barcode)
+    count(DISTINCT barcode)
     from t_user
     where CREATE_DATE between '{begintime}' and '{endtime}'
     and region_block_code = '{region}'
@@ -240,7 +245,8 @@ def get_queries(region):
 		when "AP" then "支付宝卡包"
         when "LW" then "门店报手机"
         when "MR" then "火星兔子"
-    		else "APP下载"
+        when "FI" then "刷脸"
+    		else "APP"
     	end as category,
     	count( distinct a.user_barcode )
     from t_pos_purchase_log a
@@ -259,18 +265,18 @@ def get_queries(region):
     # formula
 
 
-    # 27 # 新会员流失人数
+    # 27 # 新会员继续活跃人数
     'q27':
     f"""
     select
-    	case
-    		b.user_origin
-    		when "WX" then "微信卡包"
-        when "WM" then "微信小程序"
-    		when "AP" then "支付宝卡包"
-        when "LW" then "门店报手机"
-        when "MR" then "火星兔子"
-    		else "APP下载"
+    	case b.user_origin
+        	when "WX" then "微信卡包"
+            when "WM" then "微信小程序"
+        	when "AP" then "支付宝卡包"
+            when "LW" then "门店报手机"
+            when "MR" then "火星兔子"
+            when "FI" then "刷脸"
+    		else "APP"
     	end as category,
     	count( distinct a.user_barcode )
     from t_pos_purchase_log a
@@ -305,7 +311,8 @@ def get_queries(region):
     		when "AP" then "支付宝卡包"
             when "LW" then "门店报手机"
             when "MR" then "火星兔子"
-    		else "APP下载"
+            when "FI" then "刷脸"
+    		else "APP"
     	end as category,
     	count( distinct a.user_id )
     from t_pos_purchase_log a
@@ -322,18 +329,18 @@ def get_queries(region):
 
 
 
-    # 31 # 老会员流失人数
+    # 31 # 老会员继续活跃人数
     'q31':
     f"""
     select
-    	case
-    		b.user_origin
-    	  when "WX" then "微信卡包"
-        when "WM" then "微信小程序"
-    		when "AP" then "支付宝卡包"
-        when "LW" then "门店报手机"
-        when "MR" then "火星兔子"
-    		else "APP下载"
+    	case b.user_origin
+        	when "WX" then "微信卡包"
+            when "WM" then "微信小程序"
+        	when "AP" then "支付宝卡包"
+            when "LW" then "门店报手机"
+            when "MR" then "火星兔子"
+            when "FI" then "刷脸"
+        	else "APP"
     	end as category,
     	count( distinct a.user_barcode )
     from t_pos_purchase_log a
@@ -376,6 +383,7 @@ def get_queries(region):
     and region_block_code = '{region}'
     ;""",
 
+	# 35 # L7人群的消费额(含税)
     'q35':
     f"""
     select sum(total_payment - COLLECTING_AMOUNT)
@@ -383,7 +391,7 @@ def get_queries(region):
     left join yoren_user_level b on a.user_id = b.user_id and a.region_block_code = b.REGION_BLOCK_CODE
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
-    and b.level_1807 = 'L7'
+    and b.level_1808 = 'L7'
     ;""",
 
     # 36 # L7销售额占比
@@ -414,7 +422,7 @@ def get_queries(region):
     select sum(point_num)
     from t_point_history
     where region_block_code = '{region}'
-    and create_date <= '{endtime}';
+    and create_date between '2017-01-01 00:00:00' and '{endtime}';
     """,
 
     # 39 # 总被使用积分
@@ -448,15 +456,15 @@ def get_queries(region):
     # formula
 
     # 44 # 已过期积分
-    'q44':
-    f"""
-    select sum(remain_point)
-    from t_point_history
-    where region_block_code = '{region}'
-    and point_end_date < '2018-12-31'
-    and create_date <= '{endtime}'
-    ;
-    """,
+    # 'q44':
+    # f"""
+    # select sum(remain_point)
+    # from t_point_history
+    # where region_block_code = '{region}'
+    # and point_end_date < '2018-12-31'
+    # and create_date <= '{endtime}'
+    # ;
+    # """,
 
 
     # 45 # 本周发行积分个数
@@ -573,33 +581,7 @@ def get_queries(region):
     # 56 # 集点对象商品销量占比
     # formula
 
-
-
-    # 57 # 集点对象商品销售额 --有点复杂,且没有包含分类集点商品
-    # 'q57':
-    # f"""
-    # SELECT
-	# sum(discount_tax_inclusive_price )
-    # FROM
-    # 	t_pos_purchase_commodity_log tppcl
-    # JOIN (
-    # 	SELECT commodity_cd
-    # 	FROM
-    # 		t_activity_commodity tac
-    # 	JOIN t_campaign tc ON tac.activity_id = tc.campaign_id
-    # 	AND region_block_code = '{region}'
-    # 	AND campaign_date_from <= '{endtime}'
-    # 	AND campaign_date_to >= '{begintime}'
-    # 	) sub1 USING (commodity_cd )
-    # 	WHERE region_block_code = '{region}'
-    # 	AND purchase_date BETWEEN '{begin}' AND '{end}';
-    # """,
-
-    # 58 # 集点对象商品销售额占比
-
-
-
-    # 59 # 实际发出礼券张数
+    # 57 # 实际发出礼券张数
     'q57':
     f"""
     select

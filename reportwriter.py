@@ -1,5 +1,4 @@
 import datetime
-import os
 import pickle
 import sys
 
@@ -11,7 +10,7 @@ from openpyxl.formula import Tokenizer
 
 from fields import fields
 
-report_date = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%m/%d/%Y")
+report_date = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%m-%d-%Y")
 locale = sys.argv[1]
 
 def write_report(pkl, sh, next_col):
@@ -26,26 +25,25 @@ def write_report(pkl, sh, next_col):
                 else:
                     sh[shloc] = float(write_val)
             elif type(entry) == dict: #then field is a dict of name, nrow pairs
-                results = pkl[q] #eg [('APP下载', 273764),('微信卡包', 367695),('微信小程序', 3420), etc
+                results = pkl[q] #eg [('APP', 273764),('微信卡包', 367695),('微信小程序', 3420), etc
                 for name, datum in results: #name, value tuple
-                    nrow = str(entry[name])
+                    nrow = str(entry[name]) #name in fields dict must match query output
                     shloc = next_col + nrow
                     if datum == None:
                         sh[shloc] = 0
                     else:
                         sh[shloc] = float(datum)
         except KeyError:
-            print(f'{q} is not in the results dictionary for {region}')
+            print(f'{q} is not in the results dictionary for {locale}')
 
 def init_new_col(sh, cur_col):
     next_col = openpyxl.utils.get_column_letter(openpyxl.utils.column_index_from_string(cur_col) + 1)
     prev_col =  openpyxl.utils.get_column_letter(openpyxl.utils.column_index_from_string(cur_col) - 1)
-    for i, row in enumerate(openpyxl.utils.rows_from_range('{0}2:{0}213'.format(cur_col))):
+    for i, row in enumerate(openpyxl.utils.rows_from_range('{0}2:{0}238'.format(cur_col))):
         cell = sh[row[0]]
         new_cell = sh[next_col+str(i+2)]
-        if type(cell.value) == type(None) or  cell.value == '-':
-            new_cell.value = 0
-        elif type(cell.value)==str:
+        new_cell._style = copy(cell._style)
+        if type(cell.value) == str and '=' in cell.value:#cell contains a formula
             formula = '='+ ''.join([item.value for item in Tokenizer(cell.value).items])
             if prev_col in formula and 'SUM' not in formula:
                 formula = formula.replace(cur_col, next_col)
@@ -56,10 +54,10 @@ def init_new_col(sh, cur_col):
             else:
                 formula = formula.replace(cur_col, next_col)
             new_cell.value = formula
-        if cell.has_style:
-            new_cell._style = copy(cell._style)
+        elif cell.value == 0:
+            new_cell.value = 0
     #and finally, set column width
-    sh.column_dimensions[next_col].width = 270
+    sh.column_dimensions[next_col].width = 14.5
 
 if __name__ == "__main__":
     with open("../temp/" + locale + ".pkl", 'rb') as pkl:
