@@ -1,20 +1,18 @@
 import datetime
 
 NOW = datetime.datetime.now()
-
+#NOW = datetime.datetime.strptime("20180827", "%Y%m%d")
 begin = (NOW - datetime.timedelta(days=7)).strftime("%Y%m%d")
 end = (NOW - datetime.timedelta(days=1)).strftime("%Y%m%d")
-
-begintime = (NOW - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
-endtime =  (NOW - datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
-
+begintime = (NOW - datetime.timedelta(days=7)).strftime("%Y-%m-%d 00:00:00")
+endtime =  (NOW - datetime.timedelta(days=1)).strftime("%Y-%m-%d 23:59:59")
 #上周-计算流失会员
 
 lostbegin = (NOW - datetime.timedelta(days=14)).strftime("%Y%m%d")
 lostend = (NOW - datetime.timedelta(days=8)).strftime("%Y%m%d")
 
-lostbegintime = (NOW - datetime.timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
-lostendtime = (NOW - datetime.timedelta(days=8)).strftime("%Y-%m-%d %H:%M:%S")
+lostbegintime = (NOW - datetime.timedelta(days=14)).strftime("%Y-%m-%d 00:00:00")
+lostendtime = (NOW - datetime.timedelta(days=8)).strftime("%Y-%m-%d 23:59:59")
 
 
 def get_queries(region):
@@ -391,7 +389,7 @@ def get_queries(region):
     left join yoren_user_level b on a.user_id = b.user_id and a.region_block_code = b.REGION_BLOCK_CODE
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
-    and b.level_1808 = 'L7'
+    and b.level_1809 = 'L7'
     ;""",
 
     # 36 # L7销售额占比
@@ -426,13 +424,13 @@ def get_queries(region):
     """,
 
     # 39 # 总被使用积分
-    'q39':
-    f"""
-    select sum(used_point)
-    from t_point_used
-    where region_block_code = '{region}'
-    and create_date <= '{endtime}';
-    """,
+    # 'q39':
+    # f"""
+    # select sum(used_point)
+    # from t_point_used
+    # where region_block_code = '{region}'
+    # and create_date <= '{endtime}';
+    # """,
 
     # 40 # 2018年年底过期积分
     'q40':
@@ -440,8 +438,7 @@ def get_queries(region):
     select sum(remain_point)
     from t_point_history
     where region_block_code = '{region}'
-    and point_end_date = '2018-12-31'
-    and create_date <= '{endtime}'
+    and create_date between '2017-01-01' and '{endtime}'
     ;
     """,
 
