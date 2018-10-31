@@ -587,6 +587,7 @@ def get_queries(region):
         when 0 then '一般发送'
         when 2 then '集点礼券'
         when 3 then '活动派发（扫码/电子码）'
+        when 9 then '活动派发（扫码/电子码）'
         when 4 then '积分商城兑换'
         when 6 then '注册'
         when 7 then '购买'
@@ -631,7 +632,7 @@ def get_queries(region):
     WHERE create_date BETWEEN '{begintime}' and '{endtime}'
     and b.region_block_code = '{region}'
     and coupon_id !=''
-    ;
+    and receive_flg = 1;
     """,
 
     # 每日福利获得   都是活动派发
@@ -649,7 +650,8 @@ def get_queries(region):
     ) b on a.mission_id = b.mission_id
     WHERE create_date BETWEEN '{begintime}' and '{endtime}'
     and b.region_block_code = '{region}'
-    and coupon_id !='';
+    and coupon_id !=''
+    and receive_flg = 1;
     """,
 
     # 58 # 积分兑换礼券使用张数
