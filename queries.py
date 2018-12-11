@@ -389,7 +389,7 @@ def get_queries(region):
     left join yoren_user_level b on a.user_id = b.user_id and a.region_block_code = b.REGION_BLOCK_CODE
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
-    and b.level_1809 = 'L7'
+    and b.level_1811 = 'L7'
     ;""",
 
     # 36 # L7销售额占比
@@ -550,31 +550,37 @@ def get_queries(region):
     # 54 # 集点参与人数
     'q54':
     f"""
-    SELECT count(DISTINCT user_id)
-    FROM t_user_stamp
-    WHERE  campaign_id in
+    SELECT count(distinct user_barcode)
+    FROM t_real_purchase_campaign_log a
+    INNER JOIN t_real_purchase_log b on a.real_purchase_id = b.real_purchase_id
+    WHERE campaign_id in
     (
-    SELECT DISTINCT campaign_id
-    FROM t_campaign a
-    where region_block_code = '{region}'
-    and campaign_date_from <= '{endtime}'
-    and campaign_date_to >= '{begintime}');
+        SELECT DISTINCT campaign_id
+        FROM t_campaign a
+        where region_block_code = {'region'}
+        and campaign_date_from <= {'endtime'}
+        and campaign_date_to >= {'begintime'}
+    )
+    and b.create_date BETWEEN {'begintime'} and {'endtime'} ;
     """,
 
     # 55 # 集点对象商品销量
     'q55':
     f"""
     SELECT sum(stamp_num)
-    FROM t_user_stamp
-    WHERE  campaign_id in
-    (
-    SELECT DISTINCT campaign_id
-    FROM t_campaign a
-    where region_block_code = '{region}'
-    and campaign_date_from <= '{endtime}'
-    and campaign_date_to >= '{begintime}');
-    """,
-
+    FROM t_real_purchase_campaign_log a
+    INNER JOIN t_real_purchase_log b on a.real_purchase_id = b.real_purchase_id
+    WHERE campaign_id in
+        (
+        SELECT DISTINCT campaign_id
+        FROM t_campaign a
+        where region_block_code = {'region'}
+        and campaign_date_from <= {'endtime'}
+        and campaign_date_to >= {'begintime'}
+        )
+    and b.create_date BETWEEN {'begintime'} and {'endtime'}
+    ;""",
+    
     # 56 # 集点对象商品销量占比
     # formula
 
