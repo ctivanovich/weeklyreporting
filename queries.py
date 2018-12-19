@@ -557,11 +557,11 @@ def get_queries(region):
     (
         SELECT DISTINCT campaign_id
         FROM t_campaign a
-        where region_block_code = {'region'}
-        and campaign_date_from <= {'endtime'}
-        and campaign_date_to >= {'begintime'}
+        where region_block_code = '{region}'
+        and campaign_date_from <= '{endtime}'
+        and campaign_date_to >= '{begintime}'
     )
-    and b.create_date BETWEEN {'begintime'} and {'endtime'} ;
+    and b.create_date BETWEEN '{begintime}' and '{endtime}' ;
     """,
 
     # 55 # 集点对象商品销量
@@ -574,13 +574,13 @@ def get_queries(region):
         (
         SELECT DISTINCT campaign_id
         FROM t_campaign a
-        where region_block_code = {'region'}
-        and campaign_date_from <= {'endtime'}
-        and campaign_date_to >= {'begintime'}
+        where region_block_code = '{region}'
+        and campaign_date_from <= '{endtime}'
+        and campaign_date_to >= '{begintime}'
         )
-    and b.create_date BETWEEN {'begintime'} and {'endtime'}
+    and b.create_date BETWEEN '{begintime}' and '{endtime}'
     ;""",
-    
+
     # 56 # 集点对象商品销量占比
     # formula
 
