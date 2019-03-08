@@ -1,7 +1,13 @@
 import datetime
 
 NOW = datetime.datetime.now()
-#NOW = datetime.datetime.strptime("20180827", "%Y%m%d")
+#NOW = datetime.datetime.strptime("20181224", "%Y%m%d") #for debugging
+
+#set Yoren user level for the L7 query (quert 35)
+last_ym = (NOW.replace(day=1) - datetime.timedelta(days=1)).strftime("%y%m")
+yoren_user_level = "level_" + last_ym
+
+#get datetime values for one week and 2 weeks ago
 begin = (NOW - datetime.timedelta(days=7)).strftime("%Y%m%d")
 end = (NOW - datetime.timedelta(days=1)).strftime("%Y%m%d")
 begintime = (NOW - datetime.timedelta(days=7)).strftime("%Y-%m-%d 00:00:00")
@@ -389,7 +395,7 @@ def get_queries(region):
     left join yoren_user_level b on a.user_id = b.user_id and a.region_block_code = b.REGION_BLOCK_CODE
     where purchase_date between '{begin}' and '{end}'
     and a.region_block_code = '{region}'
-    and b.level_1811 = 'L7'
+    and b.{yoren_user_level} = 'L7'
     ;""",
 
     # 36 # L7销售额占比
@@ -561,7 +567,7 @@ def get_queries(region):
         and campaign_date_from <= '{endtime}'
         and campaign_date_to >= '{begintime}'
     )
-    and b.create_date BETWEEN '{begintime}' and '{endtime}' ;
+    and b.create_date BETWEEN '{begintime}' and '{endtime}';
     """,
 
     # 55 # 集点对象商品销量
@@ -580,7 +586,7 @@ def get_queries(region):
         )
     and b.create_date BETWEEN '{begintime}' and '{endtime}'
     ;""",
-
+    
     # 56 # 集点对象商品销量占比
     # formula
 

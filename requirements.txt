@@ -1,7 +1,0 @@
-openpyxl
-pymysql
-psycopg2
-sshtunnel
-pandas
-matplotlib
-openpyxl

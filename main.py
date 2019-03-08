@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from multiprocessing.pool import ThreadPool
 import logging
 import sys
@@ -14,7 +15,7 @@ results = {}
 region = sys.argv[1]
 db_type = 'mysql'
 
-pool = ThreadPool(processes=8)
+pool = ThreadPool(processes=10)
 
 def log_decorator(func):
     def logger(*args, **kwargs):
@@ -59,7 +60,6 @@ if __name__ == '__main__':
     print(f"{len(results)} of {len(queries)} queries successfully executed")
     print(results)
     print('\n\n')
-    
-    #dump query results for each location as pickle files as backups
+
     with open(f'../temp/{region}.pkl', 'wb') as f:
         pickle.dump(results, f)
